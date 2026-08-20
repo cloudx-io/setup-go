@@ -58,6 +58,7 @@ jobs:
 | `go-version` | yes | | Go version to install. Passed through to `actions/setup-go`. |
 | `cache-key-prefix` | yes | | Distinguishes this job's cache from other Go jobs in the same workflow. |
 | `cache-dependency-path` | no | `**/go.sum` | Glob hashed into the cache key. |
+| `max-staleness-hours` | no | `2` | Grace period, in hours, for unused build-cache files. Files untouched for longer than this interval are trimmed before save. |
 
 ### Outputs
 
@@ -85,6 +86,10 @@ priority order:
 4. Default branch, any `go.sum`
 
 A failed job doesn't save its final cache state.
+
+## Trimming
+
+The nested `trim-gocache` action records the job start time, then in its **post** step (after your build/test, before `actions/cache` saves) deletes GOCACHE files outside the `max-staleness-hours` lookback window. The default is two hours, which accounts for Go's one-hour mtime-touch granularity. Set it to any non-negative whole number of hours.
 
 ## License
 
