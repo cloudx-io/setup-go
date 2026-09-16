@@ -2,10 +2,9 @@
 
 A drop-in replacement for [`actions/setup-go`](https://github.com/actions/setup-go).
 
-Installs Go and caches `GOCACHE` and `GOMODCACHE` using job-isolated cache keys. Writes a new cache entry even after a successful cache restore so incremental 
+Use this to efficiently parallelize your golang lint, build, and test jobs. They each get their own cache entry and don't conflict with each other. The cache is updated after every run so every time you merge a PR, CI only builds and tests the packages that have changed. We accomplish this by installing go and caching `GOCACHE` and `GOMODCACHE` with job-specific cache keys.
 
-> [!NOTE]
-> [→ Read about `setup-go` on the CloudX Blog](https://www.cloudx.ai/posts/setup-go)
+For a much deeper technical dive on how this works, read [our post on the CloudX blog](https://www.cloudx.ai/posts/setup-go).
 
 ## Usage
 
