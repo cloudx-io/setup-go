@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: cloudx-io/setup-go-cache@v1
+      - uses: cloudx-io/setup-go@v1
         with:
           go-version: "1.26.1"
           cache-key-prefix: "test"
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: cloudx-io/setup-go-cache@v1
+      - uses: cloudx-io/setup-go@v1
         with:
           go-version: "1.26.1"
           cache-key-prefix: "lint"
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: cloudx-io/setup-go-cache@v1
+      - uses: cloudx-io/setup-go@v1
         with:
           go-version: "1.26.1"
           cache-key-prefix: "build-api"
