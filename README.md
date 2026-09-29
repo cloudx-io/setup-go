@@ -90,6 +90,40 @@ A failed job doesn't save its final cache state.
 
 The nested `trim-gocache` action records the job start time, then in its **post** step (after your build/test, before `actions/cache` saves) deletes GOCACHE files outside the `max-staleness-hours` lookback window. The default is two hours, which accounts for Go's one-hour mtime-touch granularity. Set it to any non-negative whole number of hours.
 
+## GitHub Actions Cache capacity
+
+> [!NOTE]
+> Last updated Sept. 28, 2026. This section summarizes disparate GitHub documentation and may be outdated.
+
+`cloudx-io/setup-go` saves a new cache entry after every run. For many repositories, this will exhaust GitHub's default Actions Cache size limit (10 GB per repository[^default]) faster than `actions/setup-go`.
+
+[^default]: https://docs.github.com/en/actions/reference/limits#storage-limits-for-all-github-hosted-runners
+
+To alleviate this pressure, increase your GitHub Actions cache size limits.
+
+This requires changing several settings:
+
+1. [Increase the cache size eviction limit for your GitHub organization or enterprise.](https://docs.github.com/en/organizations/managing-organization-settings/disabling-or-limiting-github-actions-for-your-organization#configuring-github-actions-cache-settings-for-your-organization)
+
+2. [Lift the budget for the Actions Cache Storage SKU](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching#increasing-cache-size) to >$0 if you have GitHub metered-product spending budgets.
+
+3. [Increase the cache size limit for your repository.](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#configuring-cache-settings-for-your-repository)
+
+The lowest limit between these three controls the effective cache size.
+
+> Repositories owned by users can configure up to 10 TB per repository. For repositories owned by organizations, the maximum configurable limit is determined by the organization's settings. For organizations owned by an enterprise, the maximum configurable limit is determined by the enterprise's settings.
+
+GitHub estimates the following monthly costs:[^est-costs]
+
+| Cache size | Monthly cost (if fully utilized) |
+|:---------- | --------------------------------:|
+| 10 GB      | $0.00 |
+| 50 GB      | $2.80 |
+| 200 GB     | $13.30 |
+| 1000 GB    | $69.30 |
+
+[^est-costs]: https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching#increasing-cache-size
+
 ## License
 
 [MIT](LICENSE)
