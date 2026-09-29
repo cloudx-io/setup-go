@@ -113,7 +113,7 @@ The lowest limit between these three controls the effective cache size.
 
 > Repositories owned by users can configure up to 10 TB per repository. For repositories owned by organizations, the maximum configurable limit is determined by the organization's settings. For organizations owned by an enterprise, the maximum configurable limit is determined by the enterprise's settings.
 
-GitHub provides the following estimated monthly costs:[^est-costs]
+GitHub estimates the following monthly costs:[^est-costs]
 
 | Cache size | Monthly cost (if fully utilized) |
 |:---------- | --------------------------------:|
