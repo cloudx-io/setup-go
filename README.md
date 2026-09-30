@@ -127,3 +127,7 @@ GitHub estimates the following monthly costs:[^est-costs]
 ## License
 
 [MIT](LICENSE)
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
