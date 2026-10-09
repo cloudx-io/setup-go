@@ -63,11 +63,11 @@ runs:
     # use, so entries untouched since job start went unused this run and
     # are dropped.
     #
-    # $/trim-gocache resolves to this repository at the same SHA the caller
+    # ./trim-gocache resolves to this repository at the same SHA the caller
     # pinned. A workspace-relative path like ./.github/actions/... only works
     # when the action lives in the consumer repo.
     - name: trim GOCACHE
-      uses: $/trim-gocache
+      uses: ./trim-gocache
       with:
         gocache: ${{ steps.get-cache-paths.outputs.gocache }}
         max-staleness-hours: ${{ inputs.max-staleness-hours }}
