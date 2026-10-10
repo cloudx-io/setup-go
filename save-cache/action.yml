@@ -1,0 +1,14 @@
+name: 'Save cache after the job'
+description: 'Register a successful-job post hook that saves the trimmed Go cache.'
+inputs:
+  path:
+    description: 'Newline-separated cache paths.'
+    required: true
+  key:
+    description: 'Primary key resolved by actions/cache/restore.'
+    required: true
+runs:
+  using: 'node24'
+  main: 'main.js'
+  post: 'save.js'
+  post-if: 'success()'
