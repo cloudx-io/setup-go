@@ -1,12 +1,12 @@
 # Local checks
 
-Requires Node.js and Python 3 with PyYAML (`python3 -m pip install PyYAML`).
+Requires Node.js 22 or newer and npm. Tests use Node's built-in test runner;
+`yaml` is the only dev dependency and is not required by action users.
 
 ```sh
-python3 -m unittest discover -s tests -v
-node --check save-cache/main.js
-node --check save-cache/save.js
-node --check save-cache/dist/index.js
+npm ci
+npm test
+npm run check
 ```
 
 The tests check action wiring, save gating, reverse post-hook ordering, frozen
