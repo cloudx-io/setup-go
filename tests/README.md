@@ -9,7 +9,7 @@ npm test
 npm run check
 ```
 
-The tests check action wiring, save gating, reverse post-hook ordering, frozen
-save inputs, and real trimming of files created before/during a simulated job.
-The upload bundle is mocked for the post-wrapper test; actual cache restoration,
-uploads, and runner post-job scheduling require a GitHub Actions run.
+The tests check action wiring, save gating, reverse post-hook ordering, the
+primary-key-only lookup used to register saving, and real trimming of files
+created before/during a simulated job. Actual cache restoration, uploads, and
+runner post-job scheduling require a GitHub Actions run.

@@ -15,7 +15,7 @@
 // under-keeping forces recompiles.
 //
 // Post hooks run in reverse declaration order, so trimming precedes the
-// save-cache post hook, which uploads only when the job succeeds.
+// actions/cache post hook, which uploads only when the job succeeds.
 
 const fs = require('fs');
 const path = require('path');

@@ -116,9 +116,21 @@ priority order:
 
 A failed job doesn't save its final cache state. Neither does a job with `save: false`.
 
+## Post-job saving
+
+Restoration uses `actions/cache/restore` to expose the matched key. When saving
+is enabled and there is no exact-key hit, a second `actions/cache` step uses
+[`lookup-only: true`](https://github.com/actions/cache#inputs) to register its
+normal successful-job post hook without downloading again. This adds one
+metadata lookup for the resolved primary key, with no restore prefixes. A miss
+still allows saving; an existing primary key skips the upload.
+
+The trim action is declared after that step, so reverse post-hook order trims
+before uploading. No cache is uploaded during setup.
+
 ## Trimming
 
-When saving is enabled and there is no exact-key hit, the nested `trim-gocache` action records the job start time, then in its **post** step (after your build/test, before `save-cache` uploads) deletes GOCACHE files outside the `max-staleness-hours` lookback window. The default is two hours, which accounts for Go's one-hour mtime-touch granularity. Set it to any non-negative whole number of hours.
+When saving is enabled and there is no exact-key hit, the nested `trim-gocache` action records the job start time, then in its **post** step (after your build/test, before `actions/cache` uploads) deletes GOCACHE files outside the `max-staleness-hours` lookback window. The default is two hours, which accounts for Go's one-hour mtime-touch granularity. Set it to any non-negative whole number of hours.
 
 ## GitHub Actions Cache capacity
 

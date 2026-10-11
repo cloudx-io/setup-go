@@ -4,7 +4,6 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test } = require('node:test');
-const vm = require('node:vm');
 const { parse } = require('yaml');
 
 const root = path.resolve(__dirname, '..');
@@ -13,7 +12,7 @@ const manifest = file => parse(read(file));
 const action = manifest('action.yml');
 const steps = action.runs.steps;
 const restore = steps.find(step => step.id === 'cache');
-const save = steps.find(step => step.uses === '$/save-cache');
+const save = steps.find(step => step.uses?.startsWith('actions/cache@'));
 const trim = steps.find(step => step.uses === '$/trim-gocache');
 
 function node(script, env) {
@@ -66,43 +65,18 @@ test('post hooks trim before saving and gate uploads', () => {
   assert.equal(trim.if, gate);
   assert.ok(steps.indexOf(restore) < steps.indexOf(save));
   assert.ok(steps.indexOf(save) < steps.indexOf(trim));
-  const saveRuns = manifest('save-cache/action.yml').runs;
-  assert.equal(saveRuns['post-if'], 'success()');
-  assert.equal(saveRuns.main, 'main.js');
-  assert.equal(saveRuns.post, 'save.js');
   assert.equal(manifest('trim-gocache/action.yml').runs.post, 'trim.js');
   // Uploads must not run before the consumer's build/test steps.
   assert.equal(steps.some(step => step.uses?.startsWith('actions/cache/save@')), false);
 });
 
-test('save inputs survive the post phase', t => {
-  const state = path.join(temporaryDirectory(t), 'state');
-  const inputs = { path: '/cache/build\n/cache/modules\n', key: 'go-cache-run-42' };
-  node('save-cache/main.js', {
-    GITHUB_STATE: state,
-    INPUT_PATH: inputs.path,
-    INPUT_KEY: inputs.key,
-  });
-  const savedState = readState(state);
-  assert.deepEqual(Object.keys(savedState), ['cacheInputs']);
-  assert.deepEqual(JSON.parse(savedState.cacheInputs), inputs);
-
-  let uploads = 0;
-  const env = {
-    STATE_cacheInputs: savedState.cacheInputs,
-    INPUT_PATH: 'changed',
-    INPUT_KEY: 'changed',
-  };
-  // Execute the real post wrapper, intercepting only the upstream upload.
-  vm.runInNewContext(read('save-cache/save.js'), {
-    process: { env },
-    require(name) {
-      assert.equal(name, './dist/index.js');
-      assert.deepEqual({ path: env.INPUT_PATH, key: env.INPUT_KEY }, inputs);
-      uploads++;
-    },
-  });
-  assert.equal(uploads, 1);
+test('save registration performs only an exact-key metadata lookup', () => {
+  assert.equal(save.uses.split('@')[1], restore.uses.split('@')[1]);
+  assert.equal(save.with['lookup-only'], true);
+  assert.equal(Object.hasOwn(save.with, 'restore-keys'), false);
+  assert.equal(Object.hasOwn(save.with, 'fail-on-cache-miss'), false);
+  assert.deepEqual(Object.keys(save.with).sort(), ['key', 'lookup-only', 'path']);
+  assert.equal(restore.with['lookup-only'], undefined);
 });
 
 test('trimming before upload preserves the working set', t => {

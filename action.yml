@@ -62,16 +62,19 @@ runs:
           go-cache-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-key-prefix }}-${{ inputs.go-version }}-${{ github.head_ref || github.ref_name }}-
           go-cache-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-key-prefix }}-${{ inputs.go-version }}-${{ github.event.repository.default_branch }}-${{ hashFiles(inputs.cache-dependency-path) }}-
           go-cache-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-key-prefix }}-${{ inputs.go-version }}-${{ github.event.repository.default_branch }}-
-    # Post hooks run in reverse order: trim the caller's working set, then save.
-    # $/ resolves nested actions at the same revision as this action.
+    # Lookup only avoids another download but registers the normal post-job save.
+    # Omit restore-keys: only an existing primary key should suppress saving.
     - name: register cache save
       if: ${{ inputs.save == 'true' && steps.cache.outputs.cache-hit != 'true' }}
-      uses: $/save-cache
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
       with:
         path: |
           ${{ steps.get-cache-paths.outputs.gocache }}
           ${{ steps.get-cache-paths.outputs.gomodcache }}
         key: ${{ steps.cache.outputs.cache-primary-key }}
+        lookup-only: true
+    # Reverse post-hook order trims the caller's working set before saving.
+    # $/ resolves this nested action at the same revision as the parent.
     - name: trim GOCACHE
       if: ${{ inputs.save == 'true' && steps.cache.outputs.cache-hit != 'true' }}
       uses: $/trim-gocache

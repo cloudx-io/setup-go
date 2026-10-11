@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check save-cache/main.js && node --check save-cache/save.js && node --check save-cache/dist/index.js"
+    "check": "node --check trim-gocache/main.js && node --check trim-gocache/trim.js && node --check tests/action.test.js"
   },
   "engines": {
     "node": ">=22"
