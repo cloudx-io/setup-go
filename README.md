@@ -92,8 +92,8 @@ succeeds. An exact-key hit (for example, a rerun) is not saved again.
 
 | Name | Description |
 |:--- |:--- |
-| `cache-hit` | `true` when `actions/cache` restored an exact key match. Normally `false` because keys include run IDs; a rerun can match exactly. |
-| `cache-matched-key` | Key of the cache restored by exact or prefix match. Empty on a miss. Use this to distinguish a prefix restore from a cold start. |
+| `cache-hit` | `true` when `actions/cache` restored an *exact* key match. Normally `false` because keys include run IDs. |
+| `cache-matched-key` | Key of the cache restored, either an exact match or a prefix match. Empty when no cache was restored. |
 
 ## Cache keys
 
@@ -105,8 +105,8 @@ go-cache-<os>-<arch>-<prefix>-<go-version>-<branch>-<hash(go.sum)>-<run_id>
 
 `run_id` makes every successful save a new exact key, so two concurrent jobs cannot overwrite each other.
 
-Keys usually do not match exactly because they include the `run_id` (reruns retain
-the same ID). Instead, caches are restored from the GitHub Actions cache by prefix matching in this
+Keys usually do not match exactly because they include the `run_id`. Instead,
+caches are restored from the GitHub Actions cache by prefix matching in this
 priority order:
 
 1. Same branch + same `go.sum`
@@ -114,19 +114,8 @@ priority order:
 3. Default branch + same `go.sum`
 4. Default branch, any `go.sum`
 
-A failed job doesn't save its final cache state. Neither does a job with `save: false`.
-
-## Post-job saving
-
-Restoration uses `actions/cache/restore` to expose the matched key. When saving
-is enabled and there is no exact-key hit, a second `actions/cache` step uses
-[`lookup-only: true`](https://github.com/actions/cache#inputs) to register its
-normal successful-job post hook without downloading again. This adds one
-metadata lookup for the resolved primary key, with no restore prefixes. A miss
-still allows saving; an existing primary key skips the upload.
-
-The trim action is declared after that step, so reverse post-hook order trims
-before uploading. No cache is uploaded during setup.
+Jobs with `save: false` and jobs that fail don't save their cache state upon
+completion.
 
 ## Trimming
 
@@ -138,7 +127,7 @@ When saving is enabled and there is no exact-key hit, the nested `trim-gocache` 
 > Last updated Sept. 28, 2026. This section summarizes disparate GitHub documentation and may be outdated.
 
 `cloudx-io/setup-go` saves a new cache entry after every successful run by default.
-For many repositories, this will exhaust GitHub's default Actions Cache size limit (10 GB per repository[^default]) faster than `actions/setup-go`. Restricting uploads to the default branch with `save` can reduce this pressure.
+For many repositories, this will exhaust GitHub's default Actions Cache size limit (10 GB per repository[^default]) faster than `actions/setup-go`.
 
 [^default]: https://docs.github.com/en/actions/reference/limits#storage-limits-for-all-github-hosted-runners
 
