@@ -50,34 +50,6 @@ jobs:
       - run: go build -o bin/api ./cmd/api
 ```
 
-### Restore-only jobs
-
-To reduce cache churn, save only on the default branch and let pull requests
-restore without uploading new entries:
-
-```yaml
-- uses: cloudx-io/setup-go@v1
-  id: setup-go
-  with:
-    go-version: "1.26.1"
-    cache-key-prefix: "test"
-    save: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-- run: go test ./...
-- name: Report cache restore
-  env:
-    CACHE_MATCHED_KEY: ${{ steps.setup-go.outputs.cache-matched-key }}
-  run: |
-    if [ -n "$CACHE_MATCHED_KEY" ]; then
-      echo "Restored cache: $CACHE_MATCHED_KEY"
-    else
-      echo "Cache miss"
-    fi
-```
-
-`save: false` disables both post-job trimming and saving; restoration is unchanged.
-Saving is still deferred until after the caller's steps and only runs if the job
-succeeds. An exact-key hit (for example, a rerun) is not saved again.
-
 ### Inputs
 
 | Name | Required | Default | Description |
