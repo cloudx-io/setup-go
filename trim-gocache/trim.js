@@ -14,13 +14,8 @@
 // even though they were used. Over-keeping slightly is harmless;
 // under-keeping forces recompiles.
 //
-// Failed jobs can't poison the cache: actions/cache's save step is gated on
-// post-if: success(), so a partial run's trimmed disk state is simply never
-// uploaded.
-//
-// This runs as the composite action's post-hook in reverse declaration
-// order — after the consumer workflow's build/lint/test steps populate
-// GOCACHE, before actions/cache's post-save tars and uploads it.
+// Post hooks run in reverse declaration order, so trimming precedes the
+// actions/cache post hook, which uploads only when the job succeeds.
 
 const fs = require('fs');
 const path = require('path');

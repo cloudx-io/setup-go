@@ -21,17 +21,25 @@ inputs:
     required: false
     default: '2'
 
+  save:
+    description: 'Save the cache after a successful job. Set to false for restore-only mode.'
+    required: false
+    default: 'true'
+
 outputs:
   cache-hit:
     description: 'True if an exact cache key match was restored'
     value: ${{ steps.cache.outputs.cache-hit }}
+  cache-matched-key:
+    description: 'Key of the restored cache, including prefix matches. Empty on a cache miss.'
+    value: ${{ steps.cache.outputs.cache-matched-key }}
 
 runs:
   using: composite
   steps:
     - name: install go binary
       id: install-go
-      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
         go-version: ${{ inputs.go-version }}
         cache: false
@@ -41,9 +49,9 @@ runs:
       run: |
         echo "gocache=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
         echo "gomodcache=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
-    - name: cache
+    - name: restore cache
       id: cache
-      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: |
           ${{ steps.get-cache-paths.outputs.gocache }}
@@ -54,19 +62,21 @@ runs:
           go-cache-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-key-prefix }}-${{ inputs.go-version }}-${{ github.head_ref || github.ref_name }}-
           go-cache-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-key-prefix }}-${{ inputs.go-version }}-${{ github.event.repository.default_branch }}-${{ hashFiles(inputs.cache-dependency-path) }}-
           go-cache-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-key-prefix }}-${{ inputs.go-version }}-${{ github.event.repository.default_branch }}-
-    # Trim GOCACHE to this run's working set. This action's post-hook runs
-    # in reverse declaration order: after the consumer workflow's main steps
-    # populate the cache, and before actions/cache's post-save uploads it.
-    # Without this, every save accretes another layer of stale compile
-    # outputs (Go has no GOCACHEMAXSIZE knob, and its 5-day age trim never
-    # fires anything in CI that compiles daily). Go touches mtimes on cache
-    # use, so entries untouched since job start went unused this run and
-    # are dropped.
-    #
-    # $/trim-gocache resolves to this repository at the same SHA the caller
-    # pinned. A workspace-relative path like ./.github/actions/... only works
-    # when the action lives in the consumer repo.
+    # Lookup only avoids another download but registers the normal post-job save.
+    # Omit restore-keys: only an existing primary key should suppress saving.
+    - name: register cache save
+      if: ${{ inputs.save == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ${{ steps.get-cache-paths.outputs.gocache }}
+          ${{ steps.get-cache-paths.outputs.gomodcache }}
+        key: ${{ steps.cache.outputs.cache-primary-key }}
+        lookup-only: true
+    # Reverse post-hook order trims the caller's working set before saving.
+    # $/ resolves this nested action at the same revision as the parent.
     - name: trim GOCACHE
+      if: ${{ inputs.save == 'true' && steps.cache.outputs.cache-hit != 'true' }}
       uses: $/trim-gocache
       with:
         gocache: ${{ steps.get-cache-paths.outputs.gocache }}
