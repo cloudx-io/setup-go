@@ -11,7 +11,7 @@ For a much deeper technical dive on how this works, read [our post on the CloudX
 ```yaml
 - uses: cloudx-io/setup-go@v1
   with:
-    go-version: "1.26.1"
+    go-version: "1.27.4"
     cache-key-prefix: "test"
 ```
 
@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: cloudx-io/setup-go@v1
         with:
-          go-version: "1.26.1"
+          go-version: "1.27.4"
           cache-key-prefix: "test"
       - run: go test ./...
 
@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: cloudx-io/setup-go@v1
         with:
-          go-version: "1.26.1"
+          go-version: "1.27.4"
           cache-key-prefix: "lint"
       - uses: golangci/golangci-lint-action@v9
 
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: cloudx-io/setup-go@v1
         with:
-          go-version: "1.26.1"
+          go-version: "1.27.4"
           cache-key-prefix: "build-api"
       - run: go build -o bin/api ./cmd/api
 ```
